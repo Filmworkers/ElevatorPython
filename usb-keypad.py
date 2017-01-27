@@ -1,6 +1,7 @@
 from evdev import InputDevice
 from threading import Thread
 from queue import Queue
+from subprocess import call
 
 code = ""
 preTime = 0
@@ -48,44 +49,46 @@ def supervisor(in_q):
            time=keypress[1]
            keyCount +=1
            if time - startTime > 5:
+              clear()
               preTime=time
               startTime=time
-              clear()
-              print()
            if time - preTime < 3:
                code+=key
                preTime=time
            if keyCount==6:
               if code=="031775Lock":
                  print("Third Floor Locked")
+                 call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
                  clear()
-                 startTime=0
               if code=="031775Un-Lock":
                  print("Third Floor Un-Locked")
+                 call(["omxplayer", "/home/pi/elevator/resource/Third unlock.m4a"])
                  clear()
-                 startTime=0
               if code=="041775Lock":
                  print("Fourth Floor Locked")
+                 call(["omxplayer", "/home/pi/elevator/resource/Penthouse lock.m4a"])
                  clear()
-                 startTime=0
               if code=="041775Un-Lock":
                  print("Fourth Floor Un-Locked")
+                 call(["omxplayer", "/home/pi/elevator/resource/Penthouse unlock.m4a"])
                  clear()
-                 startTime=0
                  
            if keyCount>6:
-              clear()
-              startTime=0
               print("what")
-                 
-           print(code, preTime, startTime, keyCount)
+              call(["omxplayer", "/home/pi/elevator/resource/You don't know the code.m4a"])
+              clear()
+           #print(code, preTime, startTime, keyCount)
             
       
 def clear():
    global code
    global keyCount
+   global startTime
+   global preTime
    code=""
    keyCount=0
+   startTime=0
+   preTime=0
 
 q = Queue()      
 keyPadScanThread = Thread(target=keyPadScan, args=(q,))

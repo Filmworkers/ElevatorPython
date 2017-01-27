@@ -16,7 +16,6 @@ keyCount = 0
 
 def keyPadScan(out_q):
    DEVICE = "/dev/input/by-id/usb-Storm-Interface.com_Storm-Interface-event-kbd"
-
    dev = InputDevice(DEVICE)
    dev.grab()  #exclusive access
 
@@ -98,8 +97,12 @@ def supervisor(in_q):
               print("what")
               call(["omxplayer", "/home/pi/elevator/resource/You don't know the code.m4a"])
               clear()
-           #print(code, preTime, startTime, keyCount)
-            
+
+           if (key=="Un-Lock") | (key=="Lock"):
+              if (keyCount>3) & (keyCount<6):
+                 call(["omxplayer", "/home/pi/elevator/resource/Whoopsy.m4a"])
+                 clear()
+              
       
 def clear():
    global code

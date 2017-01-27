@@ -34,21 +34,34 @@ def supervisor(in_q):
     code = ""
     preTime = 0
     startTime = 0
-    while q.not_empty:
-        keypress = in_q.get()
-        key=keypress[0]
-        time=keypress[1]
-        if time - startTime > 10:
-           startTime=time
-           preTime=time
-           code=""
-           print()
-        if time - preTime < 3:
-            code+=key
-            preTime=time
-
+    keyCount = 0
+    while True:
+       if q.not_empty:
+           keypress = in_q.get()
+           key=keypress[0]
+           time=keypress[1]
+           keyCount +=1
+           if time - startTime > 10:
+              startTime=time
+              preTime=time
+              code=""
+              keyCount=0
+              print()
+           if time - preTime < 3:
+               code+=key
+               preTime=time
+           if keyCount==6:
+              if code=="031775Lock":
+                 print("Third Floor Locked")
+              if code=="031775Un-Lock":
+                 print("Third Floor Un-Locked")
+              if code=="041775Lock":
+                 print("Fourth Floor Locked")
+              if code=="041775Un-Lock":
+                 print("Fourth Floor Un-Locked")
+                 
               
-        print(code, preTime, startTime)
+           print(code, preTime, startTime, keyCount)
             
       
       

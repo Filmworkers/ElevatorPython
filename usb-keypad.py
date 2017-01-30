@@ -48,53 +48,57 @@ def supervisor(in_q):
        if q.not_empty:
            keypress=in_q.get()
            key=keypress[0]  #Key the user hit
-           time=keypress[1] #when the user hit the key
-           keyCount+=1      #how many keys the user has hit
-           if time-startTime > 5: #if it's been more than 5 seconds
-              clear()
+           time=keypress[1] #When the user hit the key
+           keyCount+=1      #How many keys the user has hit
+           if time-startTime > 5: #If it's been more than 5 seconds
+              clear()             #start over
               intraKeyTime=time
               startTime=time
-           if time - intraKeyTime < 3:
-               enteredCode+=key
-               intraKeyTime=time
-               print("time out")
-           if keyCount==6:
-              if enteredCode=="031775Lock":
-                 print("Third Floor Locked")
-                 relay.OFF_3()
-                 call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
-                 clear()
-              if enteredCode=="031775Un-Lock":
-                 print("Third Floor Un-Locked")
-                 relay.ON_3()
-                 call(["omxplayer", "/home/pi/elevator/resource/Third unlock.m4a"])
-                 clear()
-              if enteredCode=="041775Lock":
-                 relay.OFF_4()
-                 print("Fourth Floor Locked")
-                 call(["omxplayer", "/home/pi/elevator/resource/Penthouse lock.m4a"])
-                 clear()
-              if enteredCode=="041775Un-Lock":
-                 print("Fourth Floor Un-Locked")
-                 relay.ON_4()
-                 call(["omxplayer", "/home/pi/elevator/resource/Penthouse unlock.m4a"])
-                 clear()
-              if enteredCode=="001775Un-Lock":
-                 print("3&4 Un-Locked")
-                 relay.ON_3()
-                 relay.ON_4()
-                 call(["omxplayer", "/home/pi/elevator/resource/Both unlock.m4a"])
-                 clear()
-              if enteredCode=="001775Lock":
-                 print("3&4 Locked")
-                 relay.OFF_3()
-                 relay.OFF_4()
-                 call(["omxplayer", "/home/pi/elevator/resource/Both lock.m4a"])
-                 clear()
-               
-           if keyCount>6:
+           if time-intraKeyTime < 3: #If user is confident
+               enteredCode+=key      #append key
+               intraKeyTime=time     #see how long it takes to get next key
+           if keyCount==6: #User has entered the right number of keys
+              if (key=="Un-Lock") | (key=="Lock"): #If last key hit was lock/unlock
+                 if enteredCode=="031775Lock":
+                    print("Third Floor Locked")
+                    relay.OFF_3()
+                    call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
+                    clear()
+                 elif enteredCode=="031775Un-Lock":
+                    print("Third Floor Un-Locked")
+                    relay.ON_3()
+                    call(["omxplayer", "/home/pi/elevator/resource/Third unlock.m4a"])
+                    clear()
+                 elif enteredCode=="041775Lock":
+                    relay.OFF_4()
+                    print("Fourth Floor Locked")
+                    call(["omxplayer", "/home/pi/elevator/resource/Penthouse lock.m4a"])
+                    clear()
+                 elif enteredCode=="041775Un-Lock":
+                    print("Fourth Floor Un-Locked")
+                    relay.ON_4()
+                    call(["omxplayer", "/home/pi/elevator/resource/Penthouse unlock.m4a"])
+                    clear()
+                 elif enteredCode=="991775Un-Lock":
+                    print("3&4 Un-Locked")
+                    relay.ON_3()
+                    relay.ON_4()
+                    call(["omxplayer", "/home/pi/elevator/resource/Both unlock.m4a"])
+                    clear()
+                 elif enteredCode=="991775Lock":
+                    print("3&4 Locked")
+                    relay.OFF_3()
+                    relay.OFF_4()
+                    call(["omxplayer", "/home/pi/elevator/resource/Both lock.m4a"])
+                    clear()
+                 else: #wrong code entered
+                    call(["omxplayer", "/home/pi/elevator/resource/Try again.m4a"])
+                    clear()
+                  
+                  
+           if keyCount>7: #User seems to be mashing keys willy nilly
               print("what")
-              call(["omxplayer", "/home/pi/elevator/resource/You don't know the enteredCode.m4a"])
+              call(["omxplayer", "/home/pi/elevator/resource/You don't know the code.m4a"])
               clear()
 
            if (key=="Un-Lock") | (key=="Lock"):
@@ -112,7 +116,6 @@ def clear():
    keyCount=0
    startTime=0
    intraKeyTime=0
-   #call(["omxplayer", "/home/pi/elevator/resource/Try again.m4a"])
 
 relay = Relay()
 q = Queue()      

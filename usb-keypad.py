@@ -4,6 +4,7 @@ from queue import Queue
 from subprocess import call
 from relays import Relay
 import time
+import schedule
 
 relay = Relay()
 q = Queue()      
@@ -114,7 +115,15 @@ def supervisor(in_q):
                  call(["omxplayer", "/home/pi/elevator/resource/Meh.m4a"])
                  clear()
               
-      
+def timeLock(): #put lock all on the queue
+   q.put(["9",time.time()])
+   q.put(["9",time.time()])
+   q.put(["1",time.time()])
+   q.put(["7",time.time()])
+   q.put(["7",time.time()])
+   q.put(["5",time.time()])
+   q.put(["Lock",time.time()])
+   
 def clear():
    global enteredCode
    global keyCount
@@ -130,3 +139,10 @@ supervisorThread = Thread(target=supervisor, args=(q,))
 
 supervisorThread.start()
 keyPadScanThread.start()
+
+schedule.every().day.at("18:00").do(timeLock)
+
+while True:
+   schedule.run_pending()
+   time.sleep(1)
+

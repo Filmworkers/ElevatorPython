@@ -1,10 +1,10 @@
+import time
 from evdev import InputDevice
 from threading import Thread
 from queue import Queue
 from subprocess import call
-from relays import Relay
-import time
 import schedule
+from relays import Relay
 
 relay = Relay()
 threadQueue = Queue()      

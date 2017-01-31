@@ -5,13 +5,14 @@ from subprocess import call
 from relays import Relay
 import time
 
+relay = Relay()
+q = Queue()      
+
+#Global variables
 enteredCode = ""
 intraKeyTime = 0
 startTime = 0
 keyCount = 0
-
-
-
 
 
 def keyPadScan(out_q):
@@ -124,8 +125,6 @@ def clear():
    startTime=0
    intraKeyTime=0
 
-relay = Relay()
-q = Queue()      
 keyPadScanThread = Thread(target=keyPadScan, args=(q,))
 supervisorThread = Thread(target=supervisor, args=(q,))
 

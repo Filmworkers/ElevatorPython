@@ -21,7 +21,7 @@ masterUnlock = False
 def keyPadScan():
    DEVICE = "/dev/input/by-id/usb-Storm-Interface.com_Storm-Interface-event-kbd"
    dev = InputDevice(DEVICE)
-   dev.grab()  #exclusive access
+   dev.grab()  #exclusive access, Linux won't think it's a keyboard
 
    keys = {
     2: "1",
@@ -41,7 +41,7 @@ def keyPadScan():
    for event in dev.read_loop():
        if event.type==1 and event.value==1:
          if event.code in keys:
-             threadQueue.put([keys[event.code], event.sec])
+             threadQueue.put([keys[event.code], event.sec]) #drop keypress on the Queue
                
 def supervisor():
     global enteredCode
@@ -63,111 +63,77 @@ def supervisor():
            if timeStamp - intraKeyTime < 3: #If user is confident
                enteredCode += key      #append key
                intraKeyTime = timeStamp     #see how long it takes to get next key
+               
            if keyCount == 6: #User has entered the right number of keys
+              
               if (key == "Un-Lock") | (key == "Lock"): #If last key hit was lock/unlock
+                 # Lock Third Floor
                  if enteredCode == "031775Lock":
-                    print("Third Floor Locked", time.ctime())
                     relay.OFF_3()
                     call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
-                    call(['curl',
-                          '-i',
-                          '-XPOST',
-                          'http://ward.filmworkers.com:8086/write?db=access',
-                          '--data-binary',
-                          'events title="Third Floor Locked"'])
+                    report("Third Floor Locked")
                     clear()
+                 # Unlock Third Floor   
                  elif enteredCode == "031775Un-Lock":
-                    print("Third Floor Un-Locked", time.ctime())
                     relay.ON_3()
                     if masterUnlock:
                        call(["omxplayer", "/home/pi/elevator/resource/Third unlock.m4a"])
-                       call(['curl',
-                             '-i',
-                             '-XPOST',
-                             'http://ward.filmworkers.com:8086/write?db=access',
-                             '--data-binary',
-                             'events title="Third Floor Un-Lock"'])
-
+                       report("Third Floor Un-Lock")
                     else:
+                       report("Third floor Temp Un-locked")
                        call(["omxplayer", "/home/pi/elevator/resource/Third floor temp unlock.m4a"])
                        time.sleep(8)
                        relay.OFF_3()
                        call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
-                       call(['curl',
-                             '-i',
-                             '-XPOST',
-                             'http://ward.filmworkers.com:8086/write?db=access',
-                             '--data-binary',
-                             'events title="Third Floor Temp Un-Lock"'])
+                       report("Third Floor Locked")
                     clear()
+                 # Lock Penthouse   
                  elif enteredCode == "041775Lock":
                     relay.OFF_4()
-                    print("Fourth Floor Locked", time.ctime())
                     call(["omxplayer", "/home/pi/elevator/resource/Penthouse lock.m4a"])
-                    call(['curl',
-                          '-i',
-                          '-XPOST',
-                          'http://ward.filmworkers.com:8086/write?db=access',
-                          '--data-binary',
-                          'events title="Fourth Floor Locked"'])
+                    report("Fourth Floor Locked")
                     clear()
+                 # Unlock Penthouse   
                  elif enteredCode == "041775Un-Lock":
-                    print("Fourth Floor Un-Locked", time.ctime())
                     relay.ON_4()
                     if masterUnlock:
                        call(["omxplayer", "/home/pi/elevator/resource/Penthouse unlock.m4a"])
-                       call(['curl',
-                             '-i',
-                             '-XPOST',
-                             'http://ward.filmworkers.com:8086/write?db=access',
-                             '--data-binary',
-                             'events title="Fourth Floor Un-Lock"'])
-
+                       report("Fourth Floor Un-Lock")
                     else:
+                       report("Fourth Floor Temp Un-Locked")
                        call(["omxplayer", "/home/pi/elevator/resource/Penthouse temp unlock.m4a"])
                        time.sleep(8)
                        relay.OFF_4()
                        call(["omxplayer", "/home/pi/elevator/resource/Penthouse lock.m4a"])
-                       call(['curl',
-                             '-i',
-                             '-XPOST',
-                             'http://ward.filmworkers.com:8086/write?db=access',
-                             '--data-binary',
-                             'events title="Fourth Floor Temp Un-Lock"'])
+                       report("Fourth Floor Locked")
                     clear()
+                 # Master Unlock Code
+                 # Unlock both Penthouse and Third Floors
                  elif enteredCode=="991775Un-Lock":
                     masterUnlock = True
-                    print("3&4 Un-Locked", time.ctime())
                     relay.ON_3()
                     relay.ON_4()
                     call(["omxplayer", "/home/pi/elevator/resource/Both unlock.m4a"])
-                    print(call(['curl',
-                          '-i',
-                          '-XPOST',
-                          'http://ward.filmworkers.com:8086/write?db=access',
-                          '--data-binary',
-                          'events title="Third & Fourth Floor Un-Locked"']))
+                    report("Third & Fourth Floor Un-Locked")
                     clear()
+                 # Master Lock Code
+                 # Lock both the Penthouse and Third Floors
                  elif enteredCode == "991775Lock":
                     masterUnlock = False
-                    print("3&4 Locked", time.ctime())
                     relay.OFF_3()
                     relay.OFF_4()
                     call(["omxplayer", "/home/pi/elevator/resource/Both lock.m4a"])
-                    call(['curl',
-                          '-i',
-                          '-XPOST',
-                          'http://ward.filmworkers.com:8086/write?db=access',
-                          '--data-binary',
-                          'events title="Third & Fourth Floor Locked"'])
+                    report("Third & Fourth Floor Locked")
                     clear()
+                    
                  else: #wrong code entered
+                    report("Wrong Code")
                     call(["omxplayer", "/home/pi/elevator/resource/Try again.m4a"])
                     clear()
                   
                   
            if keyCount>7: #User seems to be mashing keys willy nilly
-              print("what")
+              report("Just hitting buttions")
               call(["omxplayer", "/home/pi/elevator/resource/You don't know the code.m4a"])
               clear()
 
@@ -197,24 +163,19 @@ def clear():
    intraKeyTime = 0
 
 def report(message):
-  print(message)
   json_body = [
     {
       "measurement": "events",
       "tags":{},
+##      "time":"",
       "fields": {
       "title": message
          }
       }
    ]
-
-  client = InfluxDBClient('ward.filmworkers.com', 8086,'','','access')
-  client.write_points(json_body)
-
-##   messageList = ['curl','-i','-XPOST', 'http://ward.filmworkers.com:8086/write?db=access','--data-binary',
-##                  'events title=message']
-##   print(messageList)
-##   call(messageList)
+  database = InfluxDBClient('ward.filmworkers.com', 8086,'','','access')
+  database.write_points(json_body)
+  print(message, time.ctime())
 
 keyPadScanThread = Thread(target = keyPadScan)
 supervisorThread = Thread(target = supervisor)

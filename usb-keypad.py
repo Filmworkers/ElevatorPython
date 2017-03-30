@@ -1,3 +1,4 @@
+from influxdb import InfluxDBClient
 import time
 from evdev import InputDevice
 from threading import Thread
@@ -196,11 +197,24 @@ def clear():
    intraKeyTime = 0
 
 def report(message):
-   print(message)
-   messageList = ['curl','-i','-XPOST', 'http://ward.filmworkers.com:8086/write?db=access','--data-binary',
-                  'events title='"+ message +'"']
-   print(messageList)
-   call(messageList)
+  print(message)
+  json_body = [
+    {
+      "measurement": "events",
+      "tags":{},
+      "fields": {
+      "title": message
+         }
+      }
+   ]
+
+  client = InfluxDBClient('ward.filmworkers.com', 8086,'','','access')
+  client.write_points(json_body)
+
+##   messageList = ['curl','-i','-XPOST', 'http://ward.filmworkers.com:8086/write?db=access','--data-binary',
+##                  'events title=message']
+##   print(messageList)
+##   call(messageList)
 
 keyPadScanThread = Thread(target = keyPadScan)
 supervisorThread = Thread(target = supervisor)

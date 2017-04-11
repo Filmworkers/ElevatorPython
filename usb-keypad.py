@@ -1,3 +1,4 @@
+import configparser
 from influxdb import InfluxDBClient
 import time
 from evdev import InputDevice
@@ -8,8 +9,12 @@ import schedule
 from relays import Relay
 
 relay = Relay()
-threadQueue = Queue()      
+threadQueue = Queue()
 
+configFile = configparser.ConfigParser()
+configFile.read('/home/pi/elevator/ElevatorPython/ElevatorConfig.txt')
+config = configFile['Configuration']
+            
 #Global variables
 enteredCode = ""
 intraKeyTime = 0
@@ -68,13 +73,13 @@ def supervisor():
               
               if (key == "Un-Lock") | (key == "Lock"): #If last key hit was lock/unlock
                  # Lock Third Floor
-                 if enteredCode == "031775Lock":
+                 if enteredCode == config["ThirdFloorCode"]+"Lock":
                     relay.OFF_3()
                     call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
                     report("Third Floor Locked")
                     clear()
                  # Unlock Third Floor   
-                 elif enteredCode == "031775Un-Lock":
+                 elif enteredCode == config["ThirdFloorCode"]+"Un-Lock":
                     relay.ON_3()
                     if masterUnlock:
                        call(["omxplayer", "/home/pi/elevator/resource/Third unlock.m4a"])
@@ -88,13 +93,13 @@ def supervisor():
                        report("Third Floor Locked")
                     clear()
                  # Lock Penthouse   
-                 elif enteredCode == "041775Lock":
+                 elif enteredCode == config["PenthouseCode"]+"Lock":
                     relay.OFF_4()
                     call(["omxplayer", "/home/pi/elevator/resource/Penthouse lock.m4a"])
                     report("Fourth Floor Locked")
                     clear()
                  # Unlock Penthouse   
-                 elif enteredCode == "041775Un-Lock":
+                 elif enteredCode == config["PenthouseCode"]+"Un-Lock":
                     relay.ON_4()
                     if masterUnlock:
                        call(["omxplayer", "/home/pi/elevator/resource/Penthouse unlock.m4a"])
@@ -109,7 +114,7 @@ def supervisor():
                     clear()
                  # Master Unlock Code
                  # Unlock both Penthouse and Third Floors
-                 elif enteredCode=="991775Un-Lock":
+                 elif enteredCode == config["MasterCode"]+"Un-Lock":
                     masterUnlock = True
                     relay.ON_3()
                     relay.ON_4()
@@ -118,7 +123,7 @@ def supervisor():
                     clear()
                  # Master Lock Code
                  # Lock both the Penthouse and Third Floors
-                 elif enteredCode == "991775Lock":
+                 elif enteredCode == config["MasterCode"]+"Lock":
                     masterUnlock = False
                     relay.OFF_3()
                     relay.OFF_4()
@@ -144,12 +149,8 @@ def supervisor():
                  clear()
               
 def timeLock(): #put lock all on the queue
-   threadQueue.put(["9",time.time()])
-   threadQueue.put(["9",time.time()])
-   threadQueue.put(["1",time.time()])
-   threadQueue.put(["7",time.time()])
-   threadQueue.put(["7",time.time()])
-   threadQueue.put(["5",time.time()])
+   for value in config["MasterCode"]:
+      threadQueue.put([value, time.time()])
    threadQueue.put(["Lock",time.time()])
    
 def clear():
@@ -183,7 +184,8 @@ supervisorThread = Thread(target = supervisor)
 supervisorThread.start()
 keyPadScanThread.start()
 
-schedule.every().day.at("18:00").do(timeLock)
+# Lock both Floors everyday
+schedule.every().day.at(config["AllLockTime"]).do(timeLock)
 
 while True:
    schedule.run_pending()

@@ -59,4 +59,3 @@ class Relay():
             self.DEVICE_REG_DATA |= (0xf<<0)
             bus.write_byte_data(self.DEVICE_ADDRESS, self.DEVICE_REG_MODE1, self.DEVICE_REG_DATA)
 
- 

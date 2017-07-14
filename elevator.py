@@ -47,7 +47,47 @@ def keyPadScan():
        if event.type==1 and event.value==1:
          if event.code in keys:
              threadQueue.put([keys[event.code], event.sec]) #drop keypress on the Queue
-               
+             
+def lockFloor3():             
+    relay.OFF_3()
+    call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
+    report("Third Floor Locked")
+    clear()
+
+def lockPenthouse():
+    relay.OFF_4()
+    call(["omxplayer", "/home/pi/elevator/resource/Penthouse lock.m4a"])
+    report("Fourth Floor Locked")
+    clear()
+    
+def tempUnlockFloor3():
+    relay.ON_3()
+    if masterUnlock:
+       call(["omxplayer", "/home/pi/elevator/resource/Third unlock.m4a"])
+       report("Client Third Floor Un-Lock")
+    else:
+       report("Client Third floor Temp Un-locked")
+       call(["omxplayer", "/home/pi/elevator/resource/Third floor temp unlock.m4a"])
+       time.sleep(8)
+       relay.OFF_3()
+       call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
+       report("Client Third Floor Locked")
+    clear()
+
+def tempUnlockPenthouse():
+    relay.ON_4()
+    if masterUnlock:
+       call(["omxplayer", "/home/pi/elevator/resource/Penthouse unlock.m4a"])
+       report("Fourth Floor Un-Lock")
+    else:
+       report("Fourth Floor Temp Un-Locked")
+       call(["omxplayer", "/home/pi/elevator/resource/Penthouse temp unlock.m4a"])
+       time.sleep(8)
+       relay.OFF_4()
+       call(["omxplayer", "/home/pi/elevator/resource/Penthouse lock.m4a"])
+       report("Fourth Floor Locked")
+    clear()
+   
 def supervisor():
     global enteredCode
     global intraKeyTime
@@ -70,64 +110,22 @@ def supervisor():
                intraKeyTime = timeStamp     #see how long it takes to get next key
                
            if keyCount == 6: #User has entered the right number of keys
-              
               if (key == "Un-Lock") | (key == "Lock"): #If last key hit was lock/unlock
                  # Lock Third Floor
                  if enteredCode == config["ThirdFloorCode"] +"Lock":
-                    relay.OFF_3()
-                    call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
-                    report("Third Floor Locked")
-                    clear()
+                    lockFloor3()
                  # Temp Unlock Third Floor   
                  elif enteredCode == config["ThirdFloorCode"]+"Un-Lock":
-                    relay.ON_3()
-                    if masterUnlock:
-                       call(["omxplayer", "/home/pi/elevator/resource/Third unlock.m4a"])
-                       report("Third Floor Un-Lock")
-                    else:
-                       report("Third floor Temp Un-locked")
-                       call(["omxplayer", "/home/pi/elevator/resource/Third floor temp unlock.m4a"])
-                       time.sleep(8)
-                       relay.OFF_3()
-                       call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
-                       report("Third Floor Locked")
-                    clear()
+                    tempUnlockFloor3()
                  # Client Temp Unlock Third Floor   
                  elif enteredCode == config["ClientCode"]+"Un-Lock":
-                    relay.ON_3()
-                    if masterUnlock:
-                       call(["omxplayer", "/home/pi/elevator/resource/Third unlock.m4a"])
-                       report("Client Third Floor Un-Lock")
-                    else:
-                       report("Client Third floor Temp Un-locked")
-                       call(["omxplayer", "/home/pi/elevator/resource/Third floor temp unlock.m4a"])
-                       time.sleep(8)
-                       relay.OFF_3()
-                       call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
-                       report("Client Third Floor Locked")
-                    clear()
-
+                    tempUnlockFloor3()
                  # Lock Penthouse
-                 
                  elif enteredCode == config["PenthouseCode"]+"Lock":
-                    relay.OFF_4()
-                    call(["omxplayer", "/home/pi/elevator/resource/Penthouse lock.m4a"])
-                    report("Fourth Floor Locked")
-                    clear()
+                    lockPenthouse()
                  # Temp Unlock Penthouse   
                  elif enteredCode == config["PenthouseCode"]+"Un-Lock":
-                    relay.ON_4()
-                    if masterUnlock:
-                       call(["omxplayer", "/home/pi/elevator/resource/Penthouse unlock.m4a"])
-                       report("Fourth Floor Un-Lock")
-                    else:
-                       report("Fourth Floor Temp Un-Locked")
-                       call(["omxplayer", "/home/pi/elevator/resource/Penthouse temp unlock.m4a"])
-                       time.sleep(8)
-                       relay.OFF_4()
-                       call(["omxplayer", "/home/pi/elevator/resource/Penthouse lock.m4a"])
-                       report("Fourth Floor Locked")
-                    clear()
+                    tempUnlockPenthouse()
                  # Master Unlock Code
                  # Unlock both Penthouse and Third Floors
                  elif enteredCode == config["MasterCode"]+"Un-Lock":

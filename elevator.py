@@ -108,6 +108,12 @@ def supervisor():
            if timeStamp - intraKeyTime < 3: #If user is confident
                enteredCode += key      #append key
                intraKeyTime = timeStamp     #see how long it takes to get next key
+           if enteredCode == config["ShortFloor3Code"]:
+              tempUnlockFloor3()
+              clear()
+           if enteredCode == config["ShortFloor4Code"]:
+              tempUnlockPenthouse()
+              clear()
                
            if keyCount == 6: #User has entered the right number of keys
               if (key == "Un-Lock") | (key == "Lock"): #If last key hit was lock/unlock

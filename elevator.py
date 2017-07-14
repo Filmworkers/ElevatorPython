@@ -66,7 +66,7 @@ def tempUnlockFloor3():
        call(["omxplayer", "/home/pi/elevator/resource/Third unlock.m4a"])
        report("Third Floor Un-Lock")
     else:
-       report("Client Third floor Temp Un-locked")
+       report("Third floor Temp Un-locked")
        call(["omxplayer", "/home/pi/elevator/resource/Third floor temp unlock.m4a"])
        time.sleep(8)
        relay.OFF_3()
@@ -205,6 +205,8 @@ def report(message):
 ##   database = InfluxDBClient('ward.filmworkers.com', 8086,'','','access')
 ##   database.write_points(json_body)
    print(message, time.ctime())
+
+report("Reboot")   
 
 keyPadScanThread = Thread(target = keyPadScan)
 supervisorThread = Thread(target = supervisor)

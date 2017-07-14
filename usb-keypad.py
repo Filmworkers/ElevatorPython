@@ -73,12 +73,12 @@ def supervisor():
               
               if (key == "Un-Lock") | (key == "Lock"): #If last key hit was lock/unlock
                  # Lock Third Floor
-                 if enteredCode == config["ThirdFloorCode"]+"Lock":
+                 if enteredCode == config["ThirdFloorCode"] +"Lock":
                     relay.OFF_3()
                     call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
                     report("Third Floor Locked")
                     clear()
-                 # Unlock Third Floor   
+                 # Temp Unlock Third Floor   
                  elif enteredCode == config["ThirdFloorCode"]+"Un-Lock":
                     relay.ON_3()
                     if masterUnlock:
@@ -92,13 +92,29 @@ def supervisor():
                        call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
                        report("Third Floor Locked")
                     clear()
-                 # Lock Penthouse   
+                 # Client Temp Unlock Third Floor   
+                 elif enteredCode == config["ClientCode"]+"Un-Lock":
+                    relay.ON_3()
+                    if masterUnlock:
+                       call(["omxplayer", "/home/pi/elevator/resource/Third unlock.m4a"])
+                       report("Client Third Floor Un-Lock")
+                    else:
+                       report("Client Third floor Temp Un-locked")
+                       call(["omxplayer", "/home/pi/elevator/resource/Third floor temp unlock.m4a"])
+                       time.sleep(8)
+                       relay.OFF_3()
+                       call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
+                       report("Client Third Floor Locked")
+                    clear()
+
+                 # Lock Penthouse
+                 
                  elif enteredCode == config["PenthouseCode"]+"Lock":
                     relay.OFF_4()
                     call(["omxplayer", "/home/pi/elevator/resource/Penthouse lock.m4a"])
                     report("Fourth Floor Locked")
                     clear()
-                 # Unlock Penthouse   
+                 # Temp Unlock Penthouse   
                  elif enteredCode == config["PenthouseCode"]+"Un-Lock":
                     relay.ON_4()
                     if masterUnlock:

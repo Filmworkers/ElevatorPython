@@ -6,6 +6,7 @@
 MasterCode = 991775
 ThirdFloorCode = 031775
 PenthouseCode = 041775
+ClientCode = 092010
 
 AllLockTime = 18:00
 

@@ -64,14 +64,14 @@ def tempUnlockFloor3():
     relay.ON_3()
     if masterUnlock:
        call(["omxplayer", "/home/pi/elevator/resource/Third unlock.m4a"])
-       report("Client Third Floor Un-Lock")
+       report("Third Floor Un-Lock")
     else:
        report("Client Third floor Temp Un-locked")
        call(["omxplayer", "/home/pi/elevator/resource/Third floor temp unlock.m4a"])
        time.sleep(8)
        relay.OFF_3()
        call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
-       report("Client Third Floor Locked")
+       report("Third Floor Locked")
     clear()
 
 def tempUnlockPenthouse():
@@ -184,19 +184,27 @@ def clear():
    intraKeyTime = 0
 
 def report(message):
-  json_body = [
-    {
-      "measurement": "events",
-      "tags":{},
-##      "time":"",
-      "fields": {
-      "title": message
-         }
-      }
-   ]
-  database = InfluxDBClient('ward.filmworkers.com', 8086,'','','access')
-  database.write_points(json_body)
-  print(message, time.ctime())
+   formattedMessage = "events title="'"%s"'"" % message
+   call(['curl',
+         '-i',
+         '-XPOST',
+         'http://ward.filmworkers.com:8086/write?db=access',
+         '--data-binary',
+         formattedMessage])
+   
+##   json_body = [
+##      {
+##       "measurement": "events",
+##       "tags":{},
+####     "time":"",
+##       "fields": {
+##       "title": message
+##         }
+##      }
+##   ]
+##   database = InfluxDBClient('ward.filmworkers.com', 8086,'','','access')
+##   database.write_points(json_body)
+   print(message, time.ctime())
 
 keyPadScanThread = Thread(target = keyPadScan)
 supervisorThread = Thread(target = supervisor)

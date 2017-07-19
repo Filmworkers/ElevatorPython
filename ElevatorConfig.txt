@@ -9,6 +9,8 @@ PenthouseCode = 041775
 ClientCode = 032010
 ShortFloor3Code = 3542
 ShortFloor4Code = 4542
+FreelanceFloor3Code = 3611
+FreelanceFloor4Code = 4611
 
 AllLockTime = 18:00
 

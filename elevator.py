@@ -114,6 +114,12 @@ def supervisor():
            if enteredCode == config["ShortFloor4Code"]:
               tempUnlockPenthouse()
               clear()
+           if enteredCode == config["FreelanceFloor3Code"]:
+              tempUnlockFloor3()
+              clear()
+           if enteredCode == config["FreelanceFloor4Code"]:
+              tempUnlockPenthouse()
+              clear()
                
            if keyCount == 6: #User has entered the right number of keys
               if (key == "Un-Lock") | (key == "Lock"): #If last key hit was lock/unlock
@@ -184,13 +190,13 @@ def clear():
    intraKeyTime = 0
 
 def report(message):
-   formattedMessage = "events title="'"%s"'"" % message
-   call(['curl',
-         '-i',
-         '-XPOST',
-         'http://ward.filmworkers.com:8086/write?db=access',
-         '--data-binary',
-         formattedMessage])
+##   formattedMessage = "events title="'"%s"'"" % message
+##   call(['curl',
+##         '-i',
+##         '-XPOST',
+##         'http://ward.filmworkers.com:8086/write?db=access',
+##         '--data-binary',
+##         formattedMessage])
    
 ##   json_body = [
 ##      {

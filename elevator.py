@@ -1,5 +1,5 @@
 import configparser
-from influxdb import InfluxDBClient
+#from influxdb import InfluxDBClient
 import time
 from evdev import InputDevice
 from threading import Thread
@@ -10,6 +10,7 @@ from relays import Relay
 
 relay = Relay()
 threadQueue = Queue()
+relockQueue = Queue()
 
 configFile = configparser.ConfigParser()
 configFile.read('/home/pi/elevator/ElevatorPython/ElevatorConfig.txt')
@@ -46,8 +47,20 @@ def keyPadScan():
    for event in dev.read_loop():
        if event.type==1 and event.value==1:
          if event.code in keys:
-             threadQueue.put([keys[event.code], event.sec]) #drop keypress on the Queue
-             
+            threadQueue.put([keys[event.code], event.sec]) #drop keypress on the Queue
+
+def relock():
+   while True:
+      if relockQueue.not_empty:
+         floor = relockQueue.get()
+         if floor == 3:
+            time.sleep(8)
+            lockFloor3()
+         if floor == 4:
+            time.sleep(8)
+            lockPenthouse()
+
+   
 def lockFloor3():             
     relay.OFF_3()
     call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
@@ -68,10 +81,7 @@ def tempUnlockFloor3():
     else:
        report("Third floor Temp Un-locked")
        call(["omxplayer", "/home/pi/elevator/resource/Third floor temp unlock.m4a"])
-       time.sleep(8)
-       relay.OFF_3()
-       call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
-       report("Third Floor Locked")
+       relockQueue.put(3)
     clear()
 
 def tempUnlockPenthouse():
@@ -82,10 +92,7 @@ def tempUnlockPenthouse():
     else:
        report("Fourth Floor Temp Un-Locked")
        call(["omxplayer", "/home/pi/elevator/resource/Penthouse temp unlock.m4a"])
-       time.sleep(8)
-       relay.OFF_4()
-       call(["omxplayer", "/home/pi/elevator/resource/Penthouse lock.m4a"])
-       report("Fourth Floor Locked")
+       relockQueue.put(4)
     clear()
    
 def supervisor():
@@ -106,8 +113,8 @@ def supervisor():
               intraKeyTime = timeStamp
               startTime = timeStamp
            if timeStamp - intraKeyTime < 3: #If user is confident
-               enteredCode += key      #append key
-               intraKeyTime = timeStamp     #see how long it takes to get next key
+              enteredCode += key      #append key
+              intraKeyTime = timeStamp     #see how long it takes to get next key
            if enteredCode == config["ShortFloor3Code"]:
               tempUnlockFloor3()
               clear()
@@ -161,8 +168,8 @@ def supervisor():
                     report("Wrong Code")
                     call(["omxplayer", "/home/pi/elevator/resource/Try again.m4a"])
                     clear()
-                  
-                  
+
+
            if keyCount>7: #User seems to be mashing keys willy nilly
               report("Just hitting buttions")
               call(["omxplayer", "/home/pi/elevator/resource/You don't know the code.m4a"])
@@ -173,12 +180,12 @@ def supervisor():
                  report("Meh")
                  call(["omxplayer", "/home/pi/elevator/resource/Meh.m4a"])
                  clear()
-              
+
 def timeLock(): #put lock all on the queue
    for value in config["MasterCode"]:
       threadQueue.put([value, time.time()])
    threadQueue.put(["Lock",time.time()])
-   
+
 def clear():
    global enteredCode
    global keyCount
@@ -197,7 +204,7 @@ def report(message):
 ##         'http://ward.filmworkers.com:8086/write?db=access',
 ##         '--data-binary',
 ##         formattedMessage])
-   
+
 ##   json_body = [
 ##      {
 ##       "measurement": "events",
@@ -216,8 +223,10 @@ report("Reboot")
 
 keyPadScanThread = Thread(target = keyPadScan)
 supervisorThread = Thread(target = supervisor)
+relockThread = Thread(target = relock)
 
 supervisorThread.start()
+relockThread.start()
 keyPadScanThread.start()
 
 # Lock both Floors everyday

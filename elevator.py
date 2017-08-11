@@ -65,35 +65,35 @@ def relock():
    
 def lockFloor3():             
     relay.OFF_3()
-    call(["omxplayer", "/home/pi/elevator/resource/Third lock.m4a"])
+    call(["omxplayer", "/home/pi/elevator/ElevatorPython/resource/Third lock.m4a"])
     report("Third Floor Locked")
     clear()
 
 def lockPenthouse():
     relay.OFF_4()
-    call(["omxplayer", "/home/pi/elevator/resource/Penthouse lock.m4a"])
+    call(["omxplayer", "/home/pi/elevator/ElevatorPython/resource/Penthouse lock.m4a"])
     report("Fourth Floor Locked")
     clear()
     
 def tempUnlockFloor3():
     relay.ON_3()
     if masterUnlock:
-       call(["omxplayer", "/home/pi/elevator/resource/Third unlock.m4a"])
+       call(["omxplayer", "/home/pi/elevator/ElevatorPython/resource/Third unlock.m4a"])
        report("Third Floor Un-Lock")
     else:
        report("Third floor Temp Un-locked")
-       call(["omxplayer", "/home/pi/elevator/resource/Third floor temp unlock.m4a"])
+       call(["omxplayer", "/home/pi/elevator/ElevatorPython/resource/Third floor temp unlock.m4a"])
        relockQueue.put(3)
     clear()
 
 def tempUnlockPenthouse():
     relay.ON_4()
     if masterUnlock:
-       call(["omxplayer", "/home/pi/elevator/resource/Penthouse unlock.m4a"])
+       call(["omxplayer", "/home/pi/elevator/ElevatorPython/resource/Penthouse unlock.m4a"])
        report("Fourth Floor Un-Lock")
     else:
        report("Fourth Floor Temp Un-Locked")
-       call(["omxplayer", "/home/pi/elevator/resource/Penthouse temp unlock.m4a"])
+       call(["omxplayer", "/home/pi/elevator/ElevatorPython/resource/Penthouse temp unlock.m4a"])
        relockQueue.put(4)
     clear()
 
@@ -105,7 +105,7 @@ def timer():
         if int(time.time() - timeStamp > 3):
             if not goodCode:
                 print("try again")
-                call(["omxplayer", "/home/pi/elevator/resource/Try again.m4a"])
+                call(["omxplayer", "/home/pi/elevator/ElevatorPython/resource/Try again.m4a"])
                 goodCode = True
    
 def supervisor():
@@ -179,7 +179,7 @@ def supervisor():
                     goodCode = True
                     relay.ON_3()
                     relay.ON_4()
-                    call(["omxplayer", "/home/pi/elevator/resource/Both unlock.m4a"])
+                    call(["omxplayer", "/home/pi/elevator/ElevatorPython/resource/Both unlock.m4a"])
                     report("Third & Fourth Floor Un-Locked")
                     clear()
                  # Master Lock Code
@@ -189,25 +189,25 @@ def supervisor():
                     goodCode = True
                     relay.OFF_3()
                     relay.OFF_4()
-                    call(["omxplayer", "/home/pi/elevator/resource/Both lock.m4a"])
+                    call(["omxplayer", "/home/pi/elevator/ElevatorPython/resource/Both lock.m4a"])
                     report("Third & Fourth Floor Locked")
                     clear()
                     
                  else: #wrong code entered
                     report("Wrong Code")
-                    call(["omxplayer", "/home/pi/elevator/resource/Try again.m4a"])
+                    call(["omxplayer", "/home/pi/elevator/ElevatorPython/resource/Try again.m4a"])
                     clear()
 
 
            if keyCount>7: #User seems to be mashing keys willy nilly
               report("Just hitting buttions")
-              call(["omxplayer", "/home/pi/elevator/resource/You don't know the code.m4a"])
+              call(["omxplayer", "/home/pi/elevator/ElevatorPython/resource/You don't know the code.m4a"])
               clear()
 
            if (key == "Un-Lock") | (key == "Lock"):
               if (keyCount > 3) & (keyCount < 6):
                  report("Meh")
-                 call(["omxplayer", "/home/pi/elevator/resource/Meh.m4a"])
+                 call(["omxplayer", "/home/pi/elevator/ElevatorPython/resource/Meh.m4a"])
                  clear()
 
 def timeLock(): #put lock all on the queue

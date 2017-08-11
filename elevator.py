@@ -19,8 +19,6 @@ config = configFile['Configuration']
 #Global variables
 enteredCode = ""
 timeStamp = 0
-intraKeyTime = 0
-startTime = 0
 keyCount = 0
 masterUnlock = False
 goodCode = True
@@ -67,13 +65,11 @@ def lockFloor3():
     relay.OFF_3()
     call(["omxplayer", "resource/Third lock.m4a"])
     report("Third Floor Locked")
-    clear()
 
 def lockPenthouse():
     relay.OFF_4()
     call(["omxplayer", "resource/Penthouse lock.m4a"])
     report("Fourth Floor Locked")
-    clear()
     
 def tempUnlockFloor3():
     relay.ON_3()
@@ -84,7 +80,6 @@ def tempUnlockFloor3():
        report("Third floor Temp Un-locked")
        call(["omxplayer", "resource/Third floor temp unlock.m4a"])
        relockQueue.put(3)
-    clear()
 
 def tempUnlockPenthouse():
     relay.ON_4()
@@ -95,7 +90,6 @@ def tempUnlockPenthouse():
        report("Fourth Floor Temp Un-Locked")
        call(["omxplayer", "resource/Penthouse temp unlock.m4a"])
        relockQueue.put(4)
-    clear()
 
 def timer():
     global timeStamp
@@ -106,12 +100,11 @@ def timer():
             if not goodCode:
                 print("try again")
                 call(["omxplayer", "resource/Try again.m4a"])
+                clear()
                 goodCode = True
    
 def supervisor():
     global enteredCode
-    global intraKeyTime
-    global startTime
     global keyCount
     global masterUnlock
     global timeStamp
@@ -124,74 +117,73 @@ def supervisor():
            key = keypress[0]  #Key the user hit
            timeStamp = keypress[1] #When the user hit the key
            keyCount += 1      #How many keys the user has hit
-           if timeStamp - startTime > 5: #If it's been more than 5 seconds
-              clear()             #start over
-              intraKeyTime = timeStamp
-              startTime = timeStamp
-           if timeStamp - intraKeyTime < 3: #If user is confident
-              enteredCode += key      #append key
-              intraKeyTime = timeStamp     #see how long it takes to get next key
-              
-           if keyCount == 3:
+           enteredCode += key      #append key
+           
+           if keyCount == 4:
                if enteredCode == config["ShortFloor3Code"]:
                   goodCode = True
-                  tempUnlockFloor3()
                   clear()
+                  tempUnlockFloor3()
                elif enteredCode == config["ShortFloor4Code"]:
                   goodCode = True
-                  tempUnlockPenthouse()
                   clear()
+                  tempUnlockPenthouse()
                elif enteredCode == config["FreelanceFloor3Code"]:
                   goodCode = True
-                  tempUnlockFloor3()
                   clear()
+                  tempUnlockFloor3()
                elif enteredCode == config["FreelanceFloor4Code"]:
                   goodCode = True
-                  tempUnlockPenthouse()
                   clear()
+                  tempUnlockPenthouse()
                
-           if keyCount == 6: #User has entered the right number of keys
+           if keyCount == 7: #User has entered the right number of keys
               if (key == "Un-Lock") | (key == "Lock"): #If last key hit was lock/unlock
                  # Lock Third Floor
                  if enteredCode == config["ThirdFloorCode"] +"Lock":
                     goodCode = True
+                    clear()
                     lockFloor3()
                  # Temp Unlock Third Floor   
                  elif enteredCode == config["ThirdFloorCode"]+"Un-Lock":
                     goodCode = True
+                    clear()
                     tempUnlockFloor3()
                  # Client Temp Unlock Third Floor   
                  elif enteredCode == config["ClientCode"]+"Un-Lock":
                     goodCode = True
+                    clear()
                     tempUnlockFloor3()
                  # Lock Penthouse
                  elif enteredCode == config["PenthouseCode"]+"Lock":
                     goodCode = True
+                    clear()
                     lockPenthouse()
                  # Temp Unlock Penthouse   
                  elif enteredCode == config["PenthouseCode"]+"Un-Lock":
                     goodCode = True
+                    clear()
                     tempUnlockPenthouse()
                  # Master Unlock Code
                  # Unlock both Penthouse and Third Floors
                  elif enteredCode == config["MasterCode"]+"Un-Lock":
                     masterUnlock = True
                     goodCode = True
+                    clear()
                     relay.ON_3()
                     relay.ON_4()
                     call(["omxplayer", "resource/Both unlock.m4a"])
                     report("Third & Fourth Floor Un-Locked")
-                    clear()
                  # Master Lock Code
                  # Lock both the Penthouse and Third Floors
                  elif enteredCode == config["MasterCode"]+"Lock":
                     masterUnlock = False
                     goodCode = True
+                    clear()
                     relay.OFF_3()
                     relay.OFF_4()
                     call(["omxplayer", "resource/Both lock.m4a"])
                     report("Third & Fourth Floor Locked")
-                    clear()
                     
                  else: #wrong code entered
                     report("Wrong Code")
@@ -218,12 +210,9 @@ def timeLock(): #put lock all on the queue
 def clear():
    global enteredCode
    global keyCount
-   global startTime
-   global intraKeyTime
    enteredCode = ""
    keyCount = 0
-   startTime = 0
-   intraKeyTime = 0
+   print("Clear Called")
 
 def report(message):
 ##   formattedMessage = "events title="'"%s"'"" % message

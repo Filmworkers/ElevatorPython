@@ -52,12 +52,13 @@ def keyPadScan():
 def relock():
    while True:
       if relockQueue.not_empty:
-         floor = relockQueue.get()
+         floorToLock = relockQueue.get()
+         floor = floorToLock[0]
+         whenTo = floorToLock[1]
+         time.sleep((whenTo +8) - time.time())
          if floor == 3:
-            time.sleep(8)
             lockFloor3()
          if floor == 4:
-            time.sleep(8)
             lockPenthouse()
 
    
@@ -79,7 +80,7 @@ def tempUnlockFloor3():
     else:
        report("Third floor Temp Un-locked")
        call(["omxplayer", "resource/Third floor temp unlock.m4a"])
-       relockQueue.put(3)
+       relockQueue.put([3, time.time()])
 
 def tempUnlockPenthouse():
     relay.ON_4()
@@ -89,7 +90,7 @@ def tempUnlockPenthouse():
     else:
        report("Fourth Floor Temp Un-Locked")
        call(["omxplayer", "resource/Penthouse temp unlock.m4a"])
-       relockQueue.put(4)
+       relockQueue.put([4, time.time()])
 
 def timer():
     global timeStamp
@@ -212,7 +213,6 @@ def clear():
    global keyCount
    enteredCode = ""
    keyCount = 0
-   print("Clear Called")
 
 def report(message):
 ##   formattedMessage = "events title="'"%s"'"" % message

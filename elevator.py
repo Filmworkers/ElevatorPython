@@ -25,6 +25,7 @@ timeStamp = 0
 keyCount = 0
 masterUnlock = False
 goodCode = True
+keyPadDisabled = True
 
 
 def keyPadScan():
@@ -63,7 +64,15 @@ def relock():
             lockFloor3()
          if floor == 4:
             lockPenthouse()
-
+            
+def keypadDisable():   
+    global keyPadDisabled
+    keyPadDisabled = True
+    
+def keypadEnable():
+    global keyPadDisabled
+    keyPadDisabled = False
+    
    
 def lockFloor3():             
     relay.OFF_3()
@@ -113,6 +122,7 @@ def supervisor():
     global masterUnlock
     global timeStamp
     global goodCode
+    global keyPadDisabled
 
     while True:
        if threadQueue.not_empty:
@@ -122,7 +132,16 @@ def supervisor():
            timeStamp = keypress[1] #When the user hit the key
            keyCount += 1      #How many keys the user has hit
            enteredCode += key      #append key
-           
+           if keyPadDisabled:
+               goodCode = True
+               clear()
+               call(["omxplayer", RESOURCE_PATH + "/KeyPadDisabled.m4a"])
+               while threadQueue.not_empty:
+                   keypress = threadQueue.get()
+                   print(keypress)
+                   break
+
+                       
            if keyCount == 4:
                if enteredCode == config["ShortFloor3Code"]:
                   goodCode = True
@@ -254,6 +273,14 @@ timerThread.start()
 
 # Lock both Floors everyday
 schedule.every().day.at(config["AllLockTime"]).do(timeLock)
+# Disable Keypad every night
+schedule.every().day.at(config["KeyPadLockTime"]).do(keypadDisable)
+# Enable Keypad weekday mornings
+schedule.every().monday.at(config["KeyPadUnLockTime"]).do(keypadEnable)
+schedule.every().tuesday.at(config["KeyPadUnLockTime"]).do(keypadEnable)
+schedule.every().wednesday.at(config["KeyPadUnLockTime"]).do(keypadEnable)
+schedule.every().thursday.at(config["KeyPadUnLockTime"]).do(keypadEnable)
+schedule.every().friday.at(config["KeyPadUnLockTime"]).do(keypadEnable)
 
 while True:
    schedule.run_pending()

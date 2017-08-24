@@ -13,4 +13,6 @@ FreelanceFloor3Code = 3611
 FreelanceFloor4Code = 4611
 
 AllLockTime = 18:00
+KeyPadLockTime = 20:00
+KeyPadUnLockTime = 8:00
 

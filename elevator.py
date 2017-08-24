@@ -109,7 +109,7 @@ def timer():
     global goodCode
     while True:
         time.sleep(1)
-        if int(time.time() - timeStamp > 2):
+        if int(time.time() - timeStamp > 3):
             if not goodCode:
                 print("try again")
                 call(["omxplayer", RESOURCE_PATH + "/Try again.m4a"])

@@ -136,11 +136,8 @@ def supervisor():
                goodCode = True
                clear()
                call(["omxplayer", RESOURCE_PATH + "/KeyPadDisabled.m4a"])
-               while threadQueue.not_empty:
+               while threadQueue.qsize() > 0:  #Flush Queue
                    keypress = threadQueue.get()
-                   print(keypress)
-                   break
-
                        
            if keyCount == 4:
                if enteredCode == config["ShortFloor3Code"]:

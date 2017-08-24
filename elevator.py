@@ -25,7 +25,7 @@ timeStamp = 0
 keyCount = 0
 masterUnlock = False
 goodCode = True
-keyPadDisabled = True
+keyPadDisabled = False
 
 
 def keyPadScan():
@@ -109,7 +109,7 @@ def timer():
     global goodCode
     while True:
         time.sleep(1)
-        if int(time.time() - timeStamp > 3):
+        if int(time.time() - timeStamp > 2):
             if not goodCode:
                 print("try again")
                 call(["omxplayer", RESOURCE_PATH + "/Try again.m4a"])
@@ -133,7 +133,7 @@ def supervisor():
            keyCount += 1      #How many keys the user has hit
            enteredCode += key      #append key
            if keyPadDisabled:
-               goodCode = True
+               goodCode = True  #Not really but no point asking to try again
                clear()
                call(["omxplayer", RESOURCE_PATH + "/KeyPadDisabled.m4a"])
                while threadQueue.qsize() > 0:  #Flush Queue

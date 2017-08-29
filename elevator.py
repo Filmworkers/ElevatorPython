@@ -107,14 +107,17 @@ def tempUnlockPenthouse():
 def timer():
     global timeStamp
     global goodCode
+    global keyPadDisabled
     while True:
         time.sleep(1)
         if int(time.time() - timeStamp > 3):
             if not goodCode:
-                print("try again")
-                call(["omxplayer", RESOURCE_PATH + "/Try again.m4a"])
-                clear()
-                goodCode = True
+               if keyPadDisabled:
+                  call(["omxplayer", RESOURCE_PATH + "/KeyPadDisabled.m4a"])
+               else:
+                  call(["omxplayer", RESOURCE_PATH + "/Try again.m4a"])
+               clear()
+               goodCode = True
    
 def supervisor():
     global enteredCode
@@ -132,14 +135,8 @@ def supervisor():
            timeStamp = keypress[1] #When the user hit the key
            keyCount += 1      #How many keys the user has hit
            enteredCode += key      #append key
-           if keyPadDisabled:
-               goodCode = True  #Not really but no point asking to try again
-               clear()
-               call(["omxplayer", RESOURCE_PATH + "/KeyPadDisabled.m4a"])
-               while threadQueue.qsize() > 0:  #Flush Queue
-                   keypress = threadQueue.get()
                        
-           if keyCount == 4:
+           if (keyCount == 4) and (not keyPadDisabled):
                if enteredCode == config["ShortFloor3Code"]:
                   goodCode = True
                   clear()

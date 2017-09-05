@@ -7,9 +7,8 @@ from threading import Thread
 from queue import Queue
 from subprocess import call
 import schedule
-from relays import Relay
+import automationhat
 
-relay = Relay()
 threadQueue = Queue()
 relockQueue = Queue()
 
@@ -59,7 +58,10 @@ def relock():
          floorToLock = relockQueue.get()
          floor = floorToLock[0]
          whenTo = floorToLock[1]
-         time.sleep((whenTo +8) - time.time())
+         delay = abs((whenTo +8) - time.time()) #don't hand sleep a negative number
+         if (delay > 8):
+            delay = 8
+         time.sleep(delay)
          if floor == 3:
             lockFloor3()
          if floor == 4:
@@ -74,18 +76,18 @@ def keypadEnable():
     keyPadDisabled = False
     
    
-def lockFloor3():             
-    relay.OFF_3()
+def lockFloor3():
+    automationhat.relay.two.off()
     call(["omxplayer", RESOURCE_PATH + "/Third lock.m4a"])
     report("Third Floor Locked")
 
 def lockPenthouse():
-    relay.OFF_4()
+    automationhat.relay.three.off()
     call(["omxplayer", RESOURCE_PATH + "/Penthouse lock.m4a"])
     report("Fourth Floor Locked")
     
 def tempUnlockFloor3():
-    relay.ON_3()
+    automationhat.relay.two.on()
     if masterUnlock:
        call(["omxplayer", RESOURCE_PATH + "/Third unlock.m4a"])
        report("Third Floor Un-Lock")
@@ -95,7 +97,7 @@ def tempUnlockFloor3():
        relockQueue.put([3, time.time()])
 
 def tempUnlockPenthouse():
-    relay.ON_4()
+    automationhat.relay.three.on()
     if masterUnlock:
        call(["omxplayer", RESOURCE_PATH + "/Penthouse unlock.m4a"])
        report("Fourth Floor Un-Lock")
@@ -108,6 +110,7 @@ def timer():
     global timeStamp
     global goodCode
     global keyPadDisabled
+    global enteredCode
     while True:
         time.sleep(1)
         if int(time.time() - timeStamp > 3):
@@ -116,6 +119,9 @@ def timer():
                   call(["omxplayer", RESOURCE_PATH + "/KeyPadDisabled.m4a"])
                else:
                   call(["omxplayer", RESOURCE_PATH + "/Try again.m4a"])
+               report("Bad code entered was " + enteredCode)
+               while (threadQueue.qsize() > 0): #Flush queue
+                      junk = threadQueue.get()
                clear()
                goodCode = True
    
@@ -187,8 +193,8 @@ def supervisor():
                     masterUnlock = True
                     goodCode = True
                     clear()
-                    relay.ON_3()
-                    relay.ON_4()
+                    automationhat.relay.two.on()
+                    automationhat.relay.three.on()
                     call(["omxplayer", RESOURCE_PATH + "/Both unlock.m4a"])
                     report("Third & Fourth Floor Un-Locked")
                  # Master Lock Code
@@ -197,8 +203,8 @@ def supervisor():
                     masterUnlock = False
                     goodCode = True
                     clear()
-                    relay.OFF_3()
-                    relay.OFF_4()
+                    automationhat.relay.two.off()
+                    automationhat.relay.three.off()
                     call(["omxplayer", RESOURCE_PATH + "/Both lock.m4a"])
                     report("Third & Fourth Floor Locked")
                     
@@ -252,8 +258,11 @@ def report(message):
 ##   database = InfluxDBClient('ward.filmworkers.com', 8086,'','','access')
 ##   database.write_points(json_body)
    print(message, time.ctime())
+   with open("/home/pi/Desktop/Elevator.log","at", 1) as logFile:
+      logFile.write(message + "\t" + time.ctime() +"\n")
 
-report("Reboot")   
+report("***Reboot")
+automationhat.light.power.on()
 
 keyPadScanThread = Thread(target = keyPadScan)
 supervisorThread = Thread(target = supervisor)

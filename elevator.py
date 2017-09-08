@@ -1,4 +1,5 @@
 import os
+import random
 import configparser
 #from influxdb import InfluxDBClient
 import time
@@ -12,7 +13,9 @@ import automationhat
 threadQueue = Queue()
 relockQueue = Queue()
 
-RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "resource")
+voices = ["Alex", "Allison", "Ava", "Daniel", "Fiona", "Karen", "Kate",
+          "Lee", "Moira", "Oliver", "Samantha", "Serena", "Susan", "Tessa",
+          "Tom", "Veena", "Vicki"]
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "ElevatorConfig.txt")
 configFile = configparser.ConfigParser()
 configFile.read(CONFIG_FILE)
@@ -78,32 +81,32 @@ def keypadEnable():
    
 def lockFloor3():
     automationhat.relay.two.off()
-    call(["omxplayer", RESOURCE_PATH + "/Third lock.m4a"])
+    call(["omxplayer", RESOURCE_PATH + "/Third lock.mp3"])
     report("Third Floor Locked")
 
 def lockPenthouse():
     automationhat.relay.three.off()
-    call(["omxplayer", RESOURCE_PATH + "/Penthouse lock.m4a"])
+    call(["omxplayer", RESOURCE_PATH + "/Penthouse lock.mp3"])
     report("Fourth Floor Locked")
     
 def tempUnlockFloor3():
     automationhat.relay.two.on()
     if masterUnlock:
-       call(["omxplayer", RESOURCE_PATH + "/Third unlock.m4a"])
+       call(["omxplayer", RESOURCE_PATH + "/Third unlock.mp3"])
        report("Third Floor Un-Lock")
     else:
        report("Third floor Temp Un-locked")
-       call(["omxplayer", RESOURCE_PATH + "/Third floor temp unlock.m4a"])
+       call(["omxplayer", RESOURCE_PATH + "/Third floor temp unlock.mp3"])
        relockQueue.put([3, time.time()])
 
 def tempUnlockPenthouse():
     automationhat.relay.three.on()
     if masterUnlock:
-       call(["omxplayer", RESOURCE_PATH + "/Penthouse unlock.m4a"])
+       call(["omxplayer", RESOURCE_PATH + "/Penthouse unlock.mp3"])
        report("Fourth Floor Un-Lock")
     else:
        report("Fourth Floor Temp Un-Locked")
-       call(["omxplayer", RESOURCE_PATH + "/Penthouse temp unlock.m4a"])
+       call(["omxplayer", RESOURCE_PATH + "/Penthouse temp unlock.mp3"])
        relockQueue.put([4, time.time()])
 
 def timer():
@@ -116,9 +119,9 @@ def timer():
         if int(time.time() - timeStamp > 3):
             if not goodCode:
                if keyPadDisabled:
-                  call(["omxplayer", RESOURCE_PATH + "/KeyPadDisabled.m4a"])
+                  call(["omxplayer", RESOURCE_PATH + "/KeyPadDisabled.mp3"])
                else:
-                  call(["omxplayer", RESOURCE_PATH + "/Try again.m4a"])
+                  call(["omxplayer", RESOURCE_PATH + "/Try again.mp3"])
                report("Bad code entered was " + enteredCode)
                while (threadQueue.qsize() > 0): #Flush queue
                       junk = threadQueue.get()
@@ -195,7 +198,7 @@ def supervisor():
                     clear()
                     automationhat.relay.two.on()
                     automationhat.relay.three.on()
-                    call(["omxplayer", RESOURCE_PATH + "/Both unlock.m4a"])
+                    call(["omxplayer", RESOURCE_PATH + "/Both unlock.mp3"])
                     report("Third & Fourth Floor Un-Locked")
                  # Master Lock Code
                  # Lock both the Penthouse and Third Floors
@@ -205,24 +208,24 @@ def supervisor():
                     clear()
                     automationhat.relay.two.off()
                     automationhat.relay.three.off()
-                    call(["omxplayer", RESOURCE_PATH + "/Both lock.m4a"])
+                    call(["omxplayer", RESOURCE_PATH + "/Both lock.mp3"])
                     report("Third & Fourth Floor Locked")
                     
                  else: #wrong code entered
                     report("Wrong Code")
-                    call(["omxplayer", RESOURCE_PATH + "/Try again.m4a"])
+                    call(["omxplayer", RESOURCE_PATH + "/Woopsy.mp3"])
                     clear()
 
 
            if keyCount>7: #User seems to be mashing keys willy nilly
               report("Just hitting buttions")
-              call(["omxplayer", RESOURCE_PATH + "/You don't know the code.m4a"])
+              call(["omxplayer", RESOURCE_PATH + "/You don't know the code.mp3"])
               clear()
 
            if (key == "Un-Lock") | (key == "Lock"):
               if (keyCount > 3) & (keyCount < 6):
                  report("Meh")
-                 call(["omxplayer", RESOURCE_PATH + "/Meh.m4a"])
+                 call(["omxplayer", RESOURCE_PATH + "/Meh.mp3"])
                  clear()
 
 def timeLock(): #put lock all on the queue
@@ -287,5 +290,7 @@ schedule.every().friday.at(config["KeyPadUnLockTime"]).do(keypadEnable)
 
 while True:
    schedule.run_pending()
+   voice = random.choice(voices)
+   RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "resource", voice)
    time.sleep(10)
 

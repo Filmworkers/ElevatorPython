@@ -118,15 +118,15 @@ def timer():
         time.sleep(1)
         if int(time.time() - timeStamp > 3):
             if not goodCode:
-               if keyPadDisabled:
-                  call(["omxplayer", RESOURCE_PATH + "/KeyPadDisabled.mp3"])
-               else:
-                  call(["omxplayer", RESOURCE_PATH + "/Try again.mp3"])
                report("Bad code entered was " + enteredCode)
                while (threadQueue.qsize() > 0): #Flush queue
                       junk = threadQueue.get()
                clear()
                goodCode = True
+               if keyPadDisabled:
+                  call(["omxplayer", RESOURCE_PATH + "/KeyPadDisabled.mp3"])
+               else:
+                  call(["omxplayer", RESOURCE_PATH + "/Try again.mp3"])
    
 def supervisor():
     global enteredCode

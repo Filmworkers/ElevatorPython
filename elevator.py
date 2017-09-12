@@ -15,7 +15,7 @@ relockQueue = Queue()
 
 voices = ["Alex", "Allison", "Ava", "Daniel", "Fiona", "Karen", "Kate",
           "Lee", "Moira", "Oliver", "Samantha", "Serena", "Susan", "Tessa",
-          "Tom", "Veena", "Vicki"]
+          "Tom", "Veena", "Vicki", "HaleyA", "HaleyB", "HaleyC"]
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "ElevatorConfig.txt")
 configFile = configparser.ConfigParser()
 configFile.read(CONFIG_FILE)

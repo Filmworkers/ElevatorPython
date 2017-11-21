@@ -290,7 +290,8 @@ schedule.every().friday.at(config["KeyPadUnLockTime"]).do(keypadEnable)
 
 while True:
    schedule.run_pending()
-   voice = random.choice(voices)
+   # voice = random.choice(voices)
+   voice = "Ava"
    RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "resource", voice)
    time.sleep(10)
 
